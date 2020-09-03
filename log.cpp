@@ -3,7 +3,6 @@
 
 
 namespace tg {
-    Log::Log() {}
     Log::~Log() {
         sToLog.close();
         sToNote.close();
@@ -14,26 +13,39 @@ namespace tg {
         return log;
     }
 
-    std::ofstream & Log::GetNoteStream(){
-        return sToNote;
+    void Log::logDown(const char* logInfo) {
+        mux.lock();
+        sToLog << WHENDATE << logInfo << std::endl;
+        mux.unlock();
     }
 
-    void Log::SetLogFilePath(const char *path) {
-        sToLog.open(path);
+    void Log::noteDown(const char* id,
+                       const char* name,
+                       const char* note) {
+        mux.lock();
+        sToNote << WHENDATE << WHO(name) << WHO(id) << note << std::endl;
+        mux.unlock();
     }
 
-    void Log::SetNoteFilePath(const char *path) {
-        sToNote.open(path);
+    void Log::SetLogFilePath(const char* path) {
+        char tmp[256] = {0};
+        _getcwd(tmp, sizeof(tmp));
+        strcat(tmp, path);
+        sToLog.open(tmp, std::ios::app);
     }
-    /*
-    void Log::WriteLog(level L) {
-        if(L == CONNECT){
-            sToNote << '[' << GetNowDateAndTime() << "][" <<
-        }
-    }*/
+
+    void Log::SetNoteFilePath(const char* path) {
+        char tmp[256] = {0};
+        _getcwd(tmp, sizeof(tmp));
+        strcat(tmp, path);
+        sToNote.open(tmp, std::ios::app);
+    }
+
     std::string Log::GetNowDateAndTime() {
         time_t t = time(NULL);
-        return ctime(&t);
+        char tmp[64] = {0};
+        strftime(tmp, sizeof(tmp), "%Y-%m-%d %H:%M:%S", localtime(&t));
+        return tmp;
     }
 
     std::string Log::GetNowTime() {

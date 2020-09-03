@@ -2,35 +2,35 @@
 #define _LOG_H_
 
 #include <fstream>
-#include <time.h>
+#include <ctime>
+#include <mutex>
+#include <direct.h>
 
-#define LOG(level) tg::Log::Get().WriteLog(level)
-#define Note tg::Log::Get().GetNoteStream() << '[' << tg::Log::GetNowDateAndTime() << '] '
+#define WHENDATE '[' << tg::Log::GetNowDateAndTime() << ']'
+#define WHEN '[' << tg::Log::GetNowTime() << ']'
+#define WHO(name) '[' << name << ']'
+#define LOG(content) tg::Log::Get().logDown(content)
+#define NOTE(id, name, content) tg::Log::Get().noteDown(id, name, content)
+
 
 namespace tg {
-
-    enum level {
-        CONNECT,
-        DISCONNECT,
-        SERVER_START,
-    };
-
     class Log {
     public:
-        Log();
+
         ~Log();
 
         //设置Log文件的路径
         void SetLogFilePath(const char* path);
         //设置记录文件路径
         void SetNoteFilePath(const char* path);
-        //将文本追加到Log文件尾部
-        void WriteLog(level L);
-        //返回Log输入文件流
-        std::ofstream& GetNoteStream();
 
-        //returns a static Log object so as to use the same Log object in multiple cpp files.
-        //返回一个静态的Log对象,以便于在多个cpp文件中使用同一个Log对象.
+        void logDown(const char* logInfo);
+
+        void noteDown(const char* id,
+                      const char* name,
+                      const char* note);
+
+        //Meyers' Singleton
         static Log &Get();
 
         //获得完整日期和时间
@@ -39,8 +39,11 @@ namespace tg {
         static std::string GetNowTime();
 
     private:
+        Log() = default;
+
         std::ofstream sToLog;
         std::ofstream sToNote;
+        std::mutex mux;
     };
 
 
