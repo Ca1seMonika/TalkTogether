@@ -69,7 +69,7 @@ namespace tg {
 
         char buf[1024] = {0};
         while (true){
-
+            memset(buf, 0, sizeof(buf));
             if(recv(tClient, buf, 1024, 0) <= 0){
                 std::cout << WHEN << WHO(name) << WHO(id) << "Disconnected\n";
                 NOTE(id, name, "Disconnected");
