@@ -14,17 +14,17 @@ namespace tg {
     }
 
     void Log::logDown(const char* logInfo) {
-        mux.lock();
+        streamMutex.lock();
         sToLog << WHENDATE << logInfo << std::endl;
-        mux.unlock();
+        streamMutex.unlock();
     }
 
     void Log::noteDown(const char* id,
                        const char* name,
                        const char* note) {
-        mux.lock();
+        streamMutex.lock();
         sToNote << WHENDATE << WHO(name) << WHO(id) << note << std::endl;
-        mux.unlock();
+        streamMutex.unlock();
     }
 
     void Log::SetLogFilePath(const char* path) {

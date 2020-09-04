@@ -2,6 +2,7 @@
 #define _LOG_H_
 
 #include <fstream>
+#include <iostream>
 #include <ctime>
 #include <mutex>
 #include <direct.h>
@@ -43,7 +44,7 @@ namespace tg {
 
         std::ofstream sToLog;
         std::ofstream sToNote;
-        std::mutex mux;
+        std::mutex streamMutex;
     };
 
 

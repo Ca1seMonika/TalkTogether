@@ -2,16 +2,28 @@
 #define _SERVER_SERVER_H_
 
 #include <thread>
-#include <mutex>
 #include <winsock2.h>
-#include <iostream>
 #include <string>
 #include <list>
+#include <chrono>
 #include "log.h"
+#include "DealSQL.h"
 
-#define MAX_CONNECT 1024
+#define BUF_SIZE 64
+#define MAX_SIZE 1024
 
 namespace tg {
+
+    struct LoginInfo {
+        LoginInfo(SOCKET sid,
+                  std::string cid,
+                  std::string name):
+                  socketId(sid), clientId(std::move(cid)), name(std::move(name)) {}
+        SOCKET socketId;
+        std::string clientId;
+        std::string name;
+    };
+
     class Server {
     public:
         Server() = default;
@@ -20,12 +32,25 @@ namespace tg {
         void StartServer();
     private:
 
+        int FindLogin(const char* id, const char* name);
+
         void ListenForConnect(SOCKET& sockServ);
 
         void Communication(SOCKET tClient);
 
-        std::list<SOCKET> LoginList;
-        std::mutex mux;
+        void broadcast(const char* content);
+
+        void ban(const char* cid);
+
+        void unban(const char* cid);
+
+        void shutDown(int waitSec);
+
+        void administrator();
+
+        std::list<tg::LoginInfo> LoginList;
+
+        std::mutex listMutex;
     };
 }
 

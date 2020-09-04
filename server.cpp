@@ -27,8 +27,30 @@ namespace tg {
         ListenForConnect(sockServ);
     }
 
+    int Server::FindLogin(const char *id, const char *name) {
+        const char* who = "id,name";
+        char qwho[256] = {0};
+        sprintf(qwho, "'%s','%s'", id, name);
+
+        SQL.Lock();
+        if(SQL.QueryValueRows("client_info", "id", id)){
+            return 1;
+        }else if(SQL.QueryValueRows("client_info", "name", name)){
+            return 2;
+        }else if(SQL.QueryValueRows("banned_id", "id", id)){
+            return 3;
+        }else{
+            SQL.InsertData("client_info", who, qwho);
+        }
+        SQL.UnLock();
+        return 0;
+    }
+
     void Server::ListenForConnect(SOCKET& sockServ) {
         LOG("Booted server");
+        std::cout << "TalkTogether Server is booted, edited by Wu Ye.\n";
+        std::thread admin([this]{administrator();});
+        admin.detach();
 
         SOCKADDR_IN addrClient = {0};
         SOCKET tClient;
@@ -39,57 +61,150 @@ namespace tg {
             if(tClient == SOCKET_ERROR){
                 continue;
             }
-            std::thread com([this, tClient]{
-                Communication(tClient);
-            });
+            std::thread com([this, tClient]{Communication(tClient);});
             com.detach();
         }
     }
 
     void Server::Communication(SOCKET tClient) {
-        char name[30] = {0};
-        char id[30] = {0};
-        recv(tClient, id, 30, 0);
-        recv(tClient, name, 30, 0);
-        send(tClient, "You have connected server, welcome to TalkTogether!", 64, 0);
+        char name[64] = {0};
+        char id[64] = {0};
+        recv(tClient, id, BUF_SIZE, 0);
+        recv(tClient, name, BUF_SIZE, 0);
 
-        std::list<SOCKET>::iterator it;
-        mux.lock();
-        if(LoginList.size() < 1024) {
-            LoginList.push_back(tClient);
-            it = --LoginList.end();
-        }else{
-            mux.unlock();
-            send(tClient, "Login full", 11, 0);
+        int res = FindLogin(id, name);
+        if(res != 0){
+            const char* buf[3] = {"Don't login again", "Existed name", "You has been banned"};
+            send(tClient, buf[res - 1], BUF_SIZE, 0);
+            closesocket(tClient);
             return;
         }
-        mux.unlock();
+
+        send(tClient, "You have connected server, welcome to TalkTogether!", BUF_SIZE, 0);
+
+        std::list<tg::LoginInfo>::iterator it;
+        listMutex.lock();
+        if(LoginList.size() < MAX_SIZE) {
+            LoginList.emplace_back(tClient, id, name);
+            it = --LoginList.end();
+        }else{
+            listMutex.unlock();
+            send(tClient, "Login full", BUF_SIZE, 0);
+            closesocket(tClient);
+            return;
+        }
+        listMutex.unlock();
+
         std::cout << WHEN << WHO(name) << WHO(id) << "Connected\n";
         NOTE(id, name, "Connected");
 
-        char buf[1024] = {0};
+        char buf[BUF_SIZE * 16] = {0};
         while (true){
             memset(buf, 0, sizeof(buf));
-            if(recv(tClient, buf, 1024, 0) <= 0){
+            if(recv(tClient, buf, BUF_SIZE * 16, 0) <= 0){
                 std::cout << WHEN << WHO(name) << WHO(id) << "Disconnected\n";
                 NOTE(id, name, "Disconnected");
+                SQL.Lock();
+                SQL.DeleteDate("client_info", "name", name);
+                SQL.UnLock();
                 break;
             }
             std::cout << WHEN << WHO(name) << WHO(id) << buf << std::endl;
+            NOTE(id, name, buf);
 
-            char tmp[1100] = {0}; int len;
+            char tmp[BUF_SIZE * 17] = {0};
             sprintf(tmp, "[%s][%s] %s", tg::Log::GetNowTime().c_str(), name, buf);
-            len = strlen(tmp);
-
-            mux.lock();
-            for(auto& ch: LoginList){
-                send(ch, tmp, len + 1, 0);
-            }
-            mux.unlock();
+            broadcast(tmp);
         }
 
-        mux.lock();
+        listMutex.lock();
         LoginList.erase(it);
-        mux.unlock();
+        listMutex.unlock();
+
+        closesocket(tClient);
+    }
+
+    void Server::broadcast(const char *buf) {
+        int len = strlen(buf);
+        listMutex.lock();
+        for(auto& ch: LoginList){
+            send(ch.socketId, buf, len, 0);
+        }
+        listMutex.unlock();
+    }
+
+    void Server::ban(const char *cid) {
+        listMutex.lock();
+        auto it = LoginList.begin();
+        for(; it != LoginList.end(); it++){
+            if(strcmp((*it).name.c_str(), cid) == 0){
+                break;
+            }
+        }
+        if(it != LoginList.end()){
+            broadcast(std::string((*it).name + "has been banned").c_str());
+            closesocket((*it).socketId);
+            LoginList.erase(it);
+        }
+        listMutex.unlock();
+
+        char t[64] = {0};
+        sprintf(t, "'%s'", cid);
+        SQL.Lock();
+        if(!SQL.QueryValueRows("banned_id", "id", cid)){
+            SQL.InsertData("banned_id", "id", t);
+        }
+        SQL.UnLock();
+    }
+
+    void Server::unban(const char *cid) {
+        SQL.Lock();
+        SQL.DeleteDate("banned_id", "id", cid);
+        SQL.UnLock();
+    }
+
+    void Server::shutDown(int waitSec) {
+        char buf[BUF_SIZE] = {0};
+        sprintf(buf, "Server will be shut in %d seconds", waitSec);
+        broadcast(buf);
+
+        std::this_thread::sleep_for(std::chrono::seconds(waitSec));
+
+        listMutex.lock();
+        for(auto& ch: LoginList){
+            closesocket(ch.socketId);
+        }
+        listMutex.unlock();
+        WSACleanup();
+
+        LOG("admin shut down the server");
+        exit(0);
+    }
+
+    void Server::administrator() {
+        char commend[BUF_SIZE * 16] = {0};
+        while (true){
+            std::cin >> commend;
+            if(commend[0] == '-'){
+                if(strcmp(commend + 1, "shutdown") == 0){
+                    int waitSec;
+                    std::cin >> waitSec;
+                    shutDown(waitSec);
+                }else if(strcmp(commend + 1, "ban") == 0){
+                    char cid[64] = {0};
+                    std::cin >> cid;
+                    ban(cid);
+                }else if(strcmp(commend + 1, "unban") == 0){
+                    char cid[64] = {0};
+                    std::cin >> cid;
+                    unban(cid);
+                }
+            }else{
+                char buf[BUF_SIZE * 17] = {0};
+                sprintf(buf, "[%s](administrator) %s", tg::Log::GetNowTime().c_str(), commend);
+                broadcast(buf);
+            }
+        }
     }
 }
+
