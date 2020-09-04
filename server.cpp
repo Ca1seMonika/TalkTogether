@@ -61,6 +61,8 @@ namespace tg {
             if(tClient == SOCKET_ERROR){
                 continue;
             }
+            int nNetTimeout = DEFAULT_WAITSEC * 1000;
+            setsockopt(tClient, SOL_SOCKET, SO_RCVTIMEO, (char *)&nNetTimeout, sizeof(int));
             std::thread com([this, tClient]{Communication(tClient);});
             com.detach();
         }

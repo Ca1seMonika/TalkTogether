@@ -11,6 +11,7 @@
 
 #define BUF_SIZE 64
 #define MAX_SIZE 1024
+#define DEFAULT_WAITSEC 300
 
 namespace tg {
 
