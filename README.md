@@ -1,5 +1,5 @@
 ## TalkTogether
-写一个简单的聊天室软件来~~zhuangbi~~学习socket和多线程和数据库 
+写一个简单的聊天室软件来~~zhuangbi~~学习socket和多线程和数据库  
 软件分为服务端(Server)和客户端(Client)  
 # Server(cmd界面)
 **要实现的功能:**
