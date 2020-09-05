@@ -9,7 +9,6 @@
 #include "server.h"
 
 int main() {
-    system("chcp 936 & cls");
     tg::Server server;
 
     tg::Log::Get().SetLogFilePath("\\log.txt");

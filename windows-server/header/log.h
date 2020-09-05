@@ -1,3 +1,10 @@
+/**
+ * TalkTogether-Server
+ * log.h
+ * @author Wu Ye
+ * @date 2020.9.5
+ */
+
 #ifndef _LOG_H_
 #define _LOG_H_
 
@@ -24,9 +31,9 @@ namespace tg {
         void SetLogFilePath(const char* path);
         //设置记录文件路径
         void SetNoteFilePath(const char* path);
-
+        //记录log
         void logDown(const char* logInfo);
-
+        //记录聊天记录
         void noteDown(const char* id,
                       const char* name,
                       const char* note);
