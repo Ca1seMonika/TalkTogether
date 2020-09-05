@@ -42,14 +42,14 @@ namespace tg {
     }
 
     std::string Log::GetNowDateAndTime() {
-        time_t t = time(NULL);
+        time_t t = time(nullptr);
         char tmp[64] = {0};
         strftime(tmp, sizeof(tmp), "%Y-%m-%d %H:%M:%S", localtime(&t));
         return tmp;
     }
 
     std::string Log::GetNowTime() {
-        time_t t = time(NULL);
+        time_t t = time(nullptr);
         tm* pt = localtime(&t);
         char tmp[9] = {0};
         sprintf(tmp, "%d:%d:%d", pt->tm_hour, pt->tm_min, pt->tm_sec);

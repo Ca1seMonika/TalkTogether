@@ -30,20 +30,22 @@ namespace tg {
     int Server::FindLogin(const char *id, const char *name) {
         const char* who = "id,name";
         char qwho[256] = {0};
+        int res = 0;
         sprintf(qwho, "'%s','%s'", id, name);
 
         SQL.Lock();
         if(SQL.QueryValueRows("client_info", "id", id)){
-            return 1;
+            res = 1;
         }else if(SQL.QueryValueRows("client_info", "name", name)){
-            return 2;
+            res = 2;
         }else if(SQL.QueryValueRows("banned_id", "id", id)){
-            return 3;
+            res = 3;
         }else{
             SQL.InsertData("client_info", who, qwho);
+            res = 0;
         }
         SQL.UnLock();
-        return 0;
+        return res;
     }
 
     void Server::ListenForConnect(SOCKET& sockServ) {
@@ -139,16 +141,17 @@ namespace tg {
         listMutex.lock();
         auto it = LoginList.begin();
         for(; it != LoginList.end(); it++){
-            if(strcmp((*it).name.c_str(), cid) == 0){
+            if(strcmp((*it).clientId.c_str(), cid) == 0){
                 break;
             }
         }
         if(it != LoginList.end()){
+            listMutex.unlock();
             broadcast(std::string((*it).name + "has been banned").c_str());
+            listMutex.lock();
             closesocket((*it).socketId);
-            LoginList.erase(it);
+            listMutex.unlock();
         }
-        listMutex.unlock();
 
         char t[64] = {0};
         sprintf(t, "'%s'", cid);
@@ -184,26 +187,28 @@ namespace tg {
     }
 
     void Server::administrator() {
-        char commend[BUF_SIZE * 16] = {0};
+        char command[BUF_SIZE * 16] = {0};
         while (true){
-            std::cin >> commend;
-            if(commend[0] == '-'){
-                if(strcmp(commend + 1, "shutdown") == 0){
+            std::cin >> command;
+            if(command[0] == '-'){
+                if(strcmp(command + 1, "shutdown") == 0){
                     int waitSec;
                     std::cin >> waitSec;
                     shutDown(waitSec);
-                }else if(strcmp(commend + 1, "ban") == 0){
+                }else if(strcmp(command + 1, "ban") == 0){
                     char cid[64] = {0};
                     std::cin >> cid;
                     ban(cid);
-                }else if(strcmp(commend + 1, "unban") == 0){
+                }else if(strcmp(command + 1, "unban") == 0){
                     char cid[64] = {0};
                     std::cin >> cid;
                     unban(cid);
+                }else{
+                    std::cout << "Error command" << std::endl;
                 }
             }else{
                 char buf[BUF_SIZE * 17] = {0};
-                sprintf(buf, "[%s](administrator) %s", tg::Log::GetNowTime().c_str(), commend);
+                sprintf(buf, "[%s](administrator) %s", tg::Log::GetNowTime().c_str(), command);
                 broadcast(buf);
             }
         }
