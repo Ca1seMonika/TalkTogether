@@ -20,3 +20,4 @@ cmake -G "Unix Makefiles" -B out ; cd out ; make
 5.在windows-server/out/config.ini文件中填入你mysql服务的相关信息  
 6.双击windows-server/out文件夹中的TalkTogether-Server.exe即可启动服务器
 7.如遇到服务器窗口异常关闭可在log.txt文件夹中查看原因  
+# windows-client(待完成)
