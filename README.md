@@ -21,3 +21,7 @@ cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make
 6.双击windows-server/out文件夹中的TalkTogether-Server.exe即可启动服务器
 7.如遇到服务器窗口异常关闭可在log.txt文件夹中查看原因  
 # windows-client(待完成)
+```
+1.第一次运行自动创建客户端的id
+2.同时收发信息
+```
