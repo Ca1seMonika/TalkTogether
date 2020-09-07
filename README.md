@@ -15,7 +15,7 @@
 3.windows-server/Mysql中放入mysql相关的头文件  
 4.在windows-server文件夹下打开powershell(或cmd)并运行命令:
 ```
-cmake -G "Unix Makefiles" -B out ; cd out ; make
+cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make
 ```
 5.在windows-server/out/config.ini文件中填入你mysql服务的相关信息  
 6.双击windows-server/out文件夹中的TalkTogether-Server.exe即可启动服务器
