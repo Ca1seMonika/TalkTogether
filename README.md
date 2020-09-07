@@ -26,5 +26,5 @@ cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make
 ```
 cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make
 ```
-2.在windows-client\config.ini中填入服务器的外网ip
+2.在windows-client\config.ini中填入服务器的外网ip  
 3.双击windows-client/out文件夹中的TalkTogether-Client.exe即可启动客户端
