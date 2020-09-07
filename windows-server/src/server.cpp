@@ -27,7 +27,7 @@ namespace tg {
         ListenForConnect(sockServ);
     }
 
-    int Server::VerifyLogin(SOCKET sockClient, const char *id, const char *name) const {
+    int Server::VerifiedLogin(SOCKET sockClient, const char *id, const char *name) const {
         const char* response[4] = {"You have connected server, welcome to TalkTogether!",
                                    "Don't login again", "Existed name", "You has been banned"};
         int res = 0;
@@ -42,7 +42,9 @@ namespace tg {
         }else if(SQL.QueryValueRows(DEFAULT_TABLENAME_BAN, "id", id)){
             res = 3;
         }
-        SQL.InsertData(DEFAULT_TABLENAME_INFO, "id,name", who);
+        if(!res) {
+            SQL.InsertData(DEFAULT_TABLENAME_INFO, "id,name", who);
+        }
         SQL.UnLock();
         send(sockClient, response[res], strlen(response[res]), 0);
         return res;
@@ -75,7 +77,7 @@ namespace tg {
         //此处未作优化,客户端发送id和name时应间隔一段时间发送
         recv(sockClient, id, sizeof(id), 0);
         recv(sockClient, name, sizeof(name), 0);
-        if(VerifyLogin(sockClient, id, name)){
+        if(VerifiedLogin(sockClient, id, name)){
             closesocket(sockClient);
             return;
         }
@@ -188,7 +190,7 @@ namespace tg {
                 if(strcmp(command + 1, "shutdown") == 0){
                     int waitSec;
                     std::cin >> waitSec;
-                    shutDown(waitSec);
+                    shutDown(waitSec >= 0 ? waitSec : 0);
                 }else if(strcmp(command + 1, "ban") == 0){
                     char cid[64] = {0};
                     std::cin >> cid;

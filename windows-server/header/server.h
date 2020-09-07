@@ -41,7 +41,7 @@ namespace tg {
         void StartServer();
     private:
         //查询请求连接的客户端是否已经登录或被ban
-        int VerifyLogin(SOCKET sockClient, const char* id, const char* name) const;
+        int VerifiedLogin(SOCKET sockClient, const char* id, const char* name) const;
         //监听连接的客户端
         void ListenForConnect(SOCKET& sockServ);
         //接受客户端的id和称呢,接受聊天信息并广播
