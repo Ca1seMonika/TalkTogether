@@ -27,24 +27,24 @@ namespace tg {
         ListenForConnect(sockServ);
     }
 
-    int Server::FindLogin(const char *id, const char *name) {
-        const char* who = "id,name";
-        char qwho[256] = {0};
+    int Server::VerifyLogin(SOCKET sockClient, const char *id, const char *name) const {
+        const char* response[4] = {"You have connected server, welcome to TalkTogether!",
+                                   "Don't login again", "Existed name", "You has been banned"};
         int res = 0;
-        sprintf(qwho, "'%s','%s'", id, name);
+        char who[FORMAT_SIZE] = {0};
+        sprintf(who, "'%s','%s'", id, name);
 
         SQL.Lock();
-        if(SQL.QueryValueRows("client_info", "id", id)){
+        if(SQL.QueryValueRows(DEFAULT_TABLENAME_INFO, "id", id)){
             res = 1;
-        }else if(SQL.QueryValueRows("client_info", "name", name)){
+        }else if(SQL.QueryValueRows(DEFAULT_TABLENAME_INFO, "name", name)){
             res = 2;
-        }else if(SQL.QueryValueRows("banned_id", "id", id)){
+        }else if(SQL.QueryValueRows(DEFAULT_TABLENAME_BAN, "id", id)){
             res = 3;
-        }else{
-            SQL.InsertData("client_info", who, qwho);
-            res = 0;
         }
+        SQL.InsertData(DEFAULT_TABLENAME_INFO, "id,name", who);
         SQL.UnLock();
+        send(sockClient, response[res], strlen(response[res]), 0);
         return res;
     }
 
@@ -70,31 +70,25 @@ namespace tg {
         }
     }
 
-    void Server::Communication(SOCKET tClient) {
-        char name[64] = {0};
-        char id[64] = {0};
-        recv(tClient, id, BUF_SIZE, 0);
-        recv(tClient, name, BUF_SIZE, 0);
-
-        int res = FindLogin(id, name);
-        if(res != 0){
-            const char* buf[3] = {"Don't login again", "Existed name", "You has been banned"};
-            send(tClient, buf[res - 1], BUF_SIZE, 0);
-            closesocket(tClient);
+    void Server::Communication(SOCKET sockClient) {
+        char id[64] = {0}, name[64] = {0};
+        //此处未作优化,客户端发送id和name时应间隔一段时间发送
+        recv(sockClient, id, sizeof(id), 0);
+        recv(sockClient, name, sizeof(name), 0);
+        if(VerifyLogin(sockClient, id, name)){
+            closesocket(sockClient);
             return;
         }
-
-        send(tClient, "You have connected server, welcome to TalkTogether!", BUF_SIZE, 0);
 
         std::list<tg::LoginInfo>::iterator it;
         listMutex.lock();
         if(LoginList.size() < MAX_SIZE) {
-            LoginList.emplace_back(tClient, id, name);
+            LoginList.emplace_back(sockClient, id, name);
             it = --LoginList.end();
         }else{
             listMutex.unlock();
-            send(tClient, "Login full", BUF_SIZE, 0);
-            closesocket(tClient);
+            send(sockClient, "Login full", BUF_SIZE, 0);
+            closesocket(sockClient);
             return;
         }
         listMutex.unlock();
@@ -105,7 +99,7 @@ namespace tg {
         char buf[BUF_SIZE * 16] = {0};
         while (true){
             memset(buf, 0, sizeof(buf));
-            if(recv(tClient, buf, BUF_SIZE * 16, 0) <= 0){
+            if(recv(sockClient, buf, BUF_SIZE * 16, 0) <= 0){
                 std::cout << WHEN << WHO(name) << WHO(id) << "Disconnected\n";
                 NOTE(id, name, "Disconnected");
                 SQL.Lock();
@@ -125,7 +119,7 @@ namespace tg {
         LoginList.erase(it);
         listMutex.unlock();
 
-        closesocket(tClient);
+        closesocket(sockClient);
     }
 
     void Server::broadcast(const char *buf) {
