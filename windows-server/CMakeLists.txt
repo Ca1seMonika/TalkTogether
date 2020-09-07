@@ -16,10 +16,10 @@ add_executable(TalkTogether-Server ${SOURCES} main.cpp)
 
 add_custom_command(TARGET TalkTogether-Server POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/lib/libmysql.dll ${PROJECT_SOURCE_DIR}/out/libmysql.dll
-        COMMAND echo host= > ${PROJECT_SOURCE_DIR}/out/config.ini
-        COMMAND echo user= >> ${PROJECT_SOURCE_DIR}/out/config.ini
-        COMMAND echo password= >> ${PROJECT_SOURCE_DIR}/out/config.ini
-        COMMAND echo port= >> ${PROJECT_SOURCE_DIR}/out/config.ini
+        COMMAND echo host=> ${PROJECT_SOURCE_DIR}/out/config.ini
+        COMMAND echo user=>> ${PROJECT_SOURCE_DIR}/out/config.ini
+        COMMAND echo password=>> ${PROJECT_SOURCE_DIR}/out/config.ini
+        COMMAND echo port=>> ${PROJECT_SOURCE_DIR}/out/config.ini
 )
 
 target_link_libraries(TalkTogether-Server ws2_32 mysql)
