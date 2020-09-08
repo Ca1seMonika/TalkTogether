@@ -43,6 +43,7 @@ namespace tg {
             mysql_close(&mysql);
             return 0;
         }
+        mysql_query(&mysql, "set names gbk");
         CleanUpTable("client_info");
         return 1;
     }

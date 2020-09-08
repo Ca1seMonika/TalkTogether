@@ -18,7 +18,7 @@ namespace tg {
         SOCKADDR_IN addrServ = {0};
         addrServ.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
         addrServ.sin_family = AF_INET;
-        addrServ.sin_port = htons(5555);
+        addrServ.sin_port = htons(555);
 
         bind(sockServ, (sockaddr*)&addrServ, sizeof(addrServ));
 
@@ -27,12 +27,16 @@ namespace tg {
         ListenForConnect(sockServ);
     }
 
-    int Server::VerifiedLogin(SOCKET sockClient, const char *id, const char *name) const {
-        const char* response[4] = {"You have connected server, welcome to TalkTogether!",
+    int Server::VerifiedLogin(SOCKET sockClient, const char *id, const char *name) {
+        char response[4][128] = {"You have connected server, welcome to TalkTogether! %d users have logged into this server.",
                                    "Don't login again", "Existed name", "You has been banned"};
         int res = 0;
         char who[FORMAT_SIZE] = {0};
         sprintf(who, "'%s','%s'", id, name);
+
+        listMutex.lock();
+        sprintf(response[0], response[0], LoginList.size() + 1);
+        listMutex.unlock();
 
         SQL.Lock();
         if(SQL.QueryValueRows(DEFAULT_TABLENAME_INFO, "id", id)){
@@ -143,7 +147,7 @@ namespace tg {
         }
         if(it != LoginList.end()){
             listMutex.unlock();
-            broadcast(std::string((*it).name + "has been banned").c_str());
+            broadcast(std::string((*it).name + " has been banned").c_str());
             listMutex.lock();
             closesocket((*it).socketId);
             listMutex.unlock();

@@ -15,6 +15,8 @@
 #include "log.h"
 
 #define DEFAULT_BASENAME "talktogether_server"
+#define DEFAULT_TABLENAME_INFO "client_info"
+#define DEFAULT_TABLENAME_BAN "banned_id"
 #define FORMAT_SIZE 1024
 #define SQL tg::DealSQL::Get()
 
