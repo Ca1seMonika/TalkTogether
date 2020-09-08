@@ -25,7 +25,7 @@ namespace tg {
         SOCKADDR_IN addrClient = {0};
         addrClient.sin_addr.S_un.S_addr = inet_addr(host.c_str());
         addrClient.sin_family = AF_INET;
-        addrClient.sin_port = htons(555);
+        addrClient.sin_port = htons();//input server's port
 
         std::cout << "type your name: ";
         std::string name;
