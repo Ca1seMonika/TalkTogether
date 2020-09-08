@@ -18,7 +18,7 @@ namespace tg {
         SOCKADDR_IN addrServ = {0};
         addrServ.sin_addr.S_un.S_addr = htonl(INADDR_ANY);
         addrServ.sin_family = AF_INET;
-        addrServ.sin_port = htons(555);
+        addrServ.sin_port = htons();//set your port
 
         bind(sockServ, (sockaddr*)&addrServ, sizeof(addrServ));
 
