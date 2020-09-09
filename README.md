@@ -15,7 +15,7 @@
 3.windows-server/Mysql中放入mysql相关的头文件  
 4.在windows-server文件夹下打开powershell(或cmd)并运行命令:
 ```
-cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make
+cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make -j4
 ```
 5.在windows-server/out/config.ini文件中填入你mysql服务的相关信息  
 (需要在mysql中建名为talktogether_server的数据库,在库中建名为client_id和banned_id的数据表)  
@@ -24,7 +24,7 @@ cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make
 # windows-client
 1.在windows-server文件夹下打开powershell(或cmd)并运行命令:
 ```
-cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make
+cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make -j4
 ```
 2.在windows-client\config.ini中填入服务器的外网ip  
 3.双击windows-client/out文件夹中的TalkTogether-Client.exe即可启动客户端
