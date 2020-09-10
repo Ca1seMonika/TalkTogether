@@ -19,7 +19,7 @@ cmake -G "Unix Makefiles" -B out -DCMAKE_BUILD_TYPE=Release ; cd out ; make -j4
 ```
 5.在windows-server/out/config.ini文件中填入你mysql服务的相关信息  
 (需要在mysql中建名为talktogether_server的数据库,在库中建名为client_id和banned_id的数据表)  
-6.双击windows-server/out文件夹中的TalkTogether-Server.exe即可启动服务器
+6.双击windows-server/out文件夹中的TalkTogether-Server.exe即可启动服务器  
 7.如遇到服务器窗口异常关闭可在log.txt文件夹中查看原因  
 # windows-client
 1.在windows-server文件夹下打开powershell(或cmd)并运行命令:
