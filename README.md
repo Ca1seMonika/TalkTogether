@@ -1,4 +1,4 @@
-## TalkTogether
+## TalkTogether(正在重写这个项目)
 写一个简单的聊天室软件来学习socket,多线程和数据库  
 软件分为服务端(Server)和客户端(Client)  
 # windows-server
