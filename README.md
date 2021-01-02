@@ -4,7 +4,7 @@
 # windows-server
 服务端的windows版本,利用windows平台的socket接口写成,具有以下功能
 ```
-支持至多1024人在线聊天(你也可以自己更改MAX_SIZE来更改最大在线人数)
+支持至多1024人在线聊天(并发模型可能不支持这么多人在线)
 管理员命令(ban, unban, shutdown)
 保存log记录
 保存聊天记录
